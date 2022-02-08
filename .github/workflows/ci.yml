@@ -1,0 +1,30 @@
+name: CI
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch: null
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.100-rc.1.21458.32
+      - run: >-
+          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+          /p:CoverletOutput=./coverage/opencover.xml
+      - run: >-
+          dotnet publish ./Tristan.Coussaert.FeatureMatching.Console/Tristan.Coussaert.FeatureMatching.Console.csproj
+          --self-contained true --output ./win-x64/Tristan-Coussaert-FeatureMatching -c
+          Release -r win-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true
+          /p:PublishReadyToRun=true
+      - name: Upload WebApp1 Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Publish win-x64 Tristan-Coussaert-FeatureMatching
+          path: ./win-x64/Tristan-Coussaert-FeatureMatching
